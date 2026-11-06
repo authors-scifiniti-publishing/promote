@@ -1,10 +1,29 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex"><title>Promote your article | Scifiniti Publishing</title>
-<style>body{margin:0;background:#F5F8FC;font:16px/1.6 Arial,sans-serif;color:#1F2A37}.w{max-width:640px;margin:0 auto;padding:40px 16px}h1{color:#003462;font-size:24px}input{width:100%;padding:12px;border:1.5px solid #DCE4EE;border-radius:8px;font-size:16px}button{margin-top:10px;padding:10px 16px;border-radius:8px;border:0;background:#003462;color:#fff;font-weight:700;cursor:pointer}</style></head>
+<style>body{margin:0;background:#F5F8FC;font:16px/1.6 Arial,sans-serif;color:#1F2A37}.w{max-width:600px;margin:0 auto;padding:40px 16px}h1{color:#003462;font-size:24px}
+input{width:100%;padding:12px;border:1.5px solid #DCE4EE;border-radius:8px;font-size:16px;box-sizing:border-box}button{margin-top:10px;padding:10px 16px;border-radius:8px;border:0;background:#003462;color:#fff;font-weight:700;cursor:pointer}
+#msg{color:#B42318} ul{padding-left:18px} a{color:#003462;font-weight:bold}</style></head>
 <body><div class="w"><img src="assets/scifiniti-logo-600.png" alt="Scifiniti Publishing" style="height:40px"><h1>Promote your article</h1>
-<p>Paste the DOI of your Scifiniti article to open its page.</p><input id="d" placeholder="10.69709/..."><button id="go">Open my page</button><p id="msg" style="color:#B42318"></p></div>
+<p id="lead">Paste the DOI of your Scifiniti article, or its title, to open its page.</p>
+<input id="d" placeholder="10.69709/... or the article title"><button id="go">Open my page</button><p id="msg"></p><ul id="sug"></ul></div>
 <script>
-function open_(doi){doi=(doi||'').trim().replace(/^https?:\/\/(dx\.)?doi\.org\//i,'');var m=doi.match(/^10\.69709\/([a-z0-9.\-]+)$/i);if(!m){document.getElementById('msg').textContent='Please paste a Scifiniti DOI, for example 10.69709/BIOMATC.2026.107707';return;}location.href='./'+encodeURIComponent(m[1].toLowerCase())+'/';}
-var q=new URLSearchParams(location.search).get('doi');if(q)open_(q);
+var CAT=null;
+function norm(s){return (s||'').toLowerCase().replace(/<[^>]*>/g,' ').replace(/&[a-z]+;/g,' ').replace(/[^a-z0-9]+/g,' ').trim();}
+function words(s){return norm(s).split(' ').filter(function(w){return w.length>2;});}
+function score(a,b){var A=words(a),B=words(b);if(!A.length||!B.length)return 0;var S={};B.forEach(function(w){S[w]=1;});var hit=A.filter(function(w){return S[w];}).length;return hit/Math.max(A.length,B.length);}
+function goSuffix(s){location.href='./'+encodeURIComponent(s)+'/';}
+function byDoi(doi){doi=(doi||'').trim().replace(/^https?:\/\/(dx\.)?doi\.org\//i,'');var m=doi.match(/^10\.69709\/([a-z0-9.\-]+)$/i);if(!m)return false;goSuffix(m[1].toLowerCase());return true;}
+function byTitle(t){var msg=document.getElementById('msg'),sug=document.getElementById('sug');sug.innerHTML='';msg.textContent='';
+  if(!CAT){msg.textContent='Loading, please try again in a moment.';return;}
+  var n=norm(t),best=null,bs=0;CAT.forEach(function(c){if(norm(c.t)===n){best=c;bs=1;}});
+  if(!best){CAT.forEach(function(c){var s=score(t,c.t);if(s>bs){bs=s;best=c;}});}
+  if(best&&bs>=0.8){goSuffix(best.s);return;}
+  msg.textContent='Your page is being prepared, or the title did not match. Please paste the DOI of your article.';
+  CAT.map(function(c){return [score(t,c.t),c];}).filter(function(x){return x[0]>=0.4;}).sort(function(a,b){return b[0]-a[0];}).slice(0,5).forEach(function(x){
+    var li=document.createElement('li'),a=document.createElement('a');a.href='./'+encodeURIComponent(x[1].s)+'/';a.textContent=x[1].t;li.appendChild(a);sug.appendChild(li);});}
+function open_(v){if(!byDoi(v))byTitle(v);}
+fetch('catalog.json').then(function(r){return r.json();}).then(function(c){CAT=c;var q=new URLSearchParams(location.search);
+  if(q.get('doi')){if(!byDoi(q.get('doi'))){document.getElementById('msg').textContent='Please paste a Scifiniti DOI, for example 10.69709/BIOMATC.2026.107707';}}
+  else if(q.get('title')){document.getElementById('d').value=q.get('title');byTitle(q.get('title'));}});
 document.getElementById('go').onclick=function(){open_(document.getElementById('d').value);};
 </script></body></html>

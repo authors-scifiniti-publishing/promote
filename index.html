@@ -2,9 +2,9 @@
 <meta name="robots" content="noindex"><title>Promote your article | Scifiniti Publishing</title>
 <style>body{margin:0;background:#F5F8FC;font:16px/1.6 Arial,sans-serif;color:#1F2A37}.w{max-width:640px;margin:0 auto;padding:40px 16px}h1{color:#003462;font-size:24px}input{width:100%;padding:12px;border:1.5px solid #DCE4EE;border-radius:8px;font-size:16px}button{margin-top:10px;padding:10px 16px;border-radius:8px;border:0;background:#003462;color:#fff;font-weight:700;cursor:pointer}</style></head>
 <body><div class="w"><img src="assets/scifiniti-logo-600.png" alt="Scifiniti Publishing" style="height:40px"><h1>Promote your article</h1>
-<p>Paste the DOI of your Scifiniti article to open its page.</p><input id="d" placeholder="10.69709/..."><button id="go">Open my page</button></div>
+<p>Paste the DOI of your Scifiniti article to open its page.</p><input id="d" placeholder="10.69709/..."><button id="go">Open my page</button><p id="msg" style="color:#B42318"></p></div>
 <script>
-function open_(doi){doi=(doi||'').trim().replace(/^https?:\/\/(dx\.)?doi\.org\//i,'');var i=doi.indexOf('/');if(i<0)return;location.href=doi.slice(i+1).toLowerCase()+'/';}
+function open_(doi){doi=(doi||'').trim().replace(/^https?:\/\/(dx\.)?doi\.org\//i,'');var m=doi.match(/^10\.69709\/([a-z0-9.\-]+)$/i);if(!m){document.getElementById('msg').textContent='Please paste a Scifiniti DOI, for example 10.69709/BIOMATC.2026.107707';return;}location.href='./'+encodeURIComponent(m[1].toLowerCase())+'/';}
 var q=new URLSearchParams(location.search).get('doi');if(q)open_(q);
 document.getElementById('go').onclick=function(){open_(document.getElementById('d').value);};
 </script></body></html>
